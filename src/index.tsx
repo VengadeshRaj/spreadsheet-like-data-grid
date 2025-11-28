@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
 import DataGrid from './DataGrid';
+import './styles/global.css'
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

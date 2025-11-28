@@ -1,18 +1,30 @@
 import React from "react";
+import "../styles/cell.css";
 
 type CellProps = {
   type: "header" | "body";
-  isEditable: boolean;
+  isEditable?: boolean;
   text: string;
+  onInput?: (value: string) => void;
 };
 
 const Cell = (props: CellProps) => {
-  const { type, isEditable, text } = props;
+  const { type, isEditable = false, text, onInput } = props;
+
+  const onCellInputChange = (e: any) => {
+    console.log(e.target);
+  };
 
   return type == "header" ? (
-    <th className="">{text}</th>
+    <th className={text ? "header" : ""}>{text}</th>
   ) : (
-    <td contentEditable={isEditable}>{text}</td>
+    <td
+      className={isEditable ? "row-value" : "row"}
+      contentEditable={isEditable}
+      onInput={onCellInputChange}
+    >
+      {text}
+    </td>
   );
 };
 

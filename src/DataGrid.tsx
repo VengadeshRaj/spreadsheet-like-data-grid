@@ -20,9 +20,9 @@ export default function DataGrid() {
   const buildHeaders = () => (
     <tr>
       {DataGridValues.header.map((data) => (
-        <th className="">{data}</th>
+        <Cell type="header" text={data} />
       ))}{" "}
-      <AddButton type="Row" onClick={addColumnClick} />
+      <AddButton type="Column" onClick={addColumnClick} />
     </tr>
   );
 
@@ -31,12 +31,12 @@ export default function DataGrid() {
       {DataGridValues.body.map((row) => (
         <tr className="">
           {row.map((rowValue, i) => (
-            <td contentEditable={!(i == 0)}>{rowValue}</td>
+            <Cell type="body" isEditable={!(i == 0)} text={rowValue} />
           ))}
         </tr>
       ))}
       <tr>
-        <AddButton type="Column" onClick={addRowClick} />
+        <AddButton type="Row" onClick={addRowClick} />
       </tr>
     </>
   );
