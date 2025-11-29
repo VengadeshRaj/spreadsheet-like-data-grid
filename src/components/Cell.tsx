@@ -1,18 +1,34 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "../styles/cell.css";
 
 type CellProps = {
   type: "header" | "body";
   isEditable?: boolean;
   text: string;
-  onInput?: (value: string) => void;
+  onCellValueChange?: (cellValue: string) => void;
 };
 
 const Cell = (props: CellProps) => {
-  const { type, isEditable = false, text, onInput } = props;
+  const { type, isEditable = false, text, onCellValueChange } = props;
+  const inputRef: any = useRef(null);
+  const [editMode, setEditMode] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  
+   useEffect(() => {
+    if (editMode) {
+      inputRef.current?.focus();
+    }
+  }, [editMode]);
 
-  const onCellInputChange = (e: any) => {
-    console.log(e.target);
+  const cellInputOnClick = () => {
+    setInputValue(text);
+    setEditMode(true);
+  };
+
+  const commitCellValue = (newCellValue: string) => {
+    setInputValue("");
+    setEditMode(false);
+    onCellValueChange?.(newCellValue);
   };
 
   return type == "header" ? (
@@ -20,10 +36,19 @@ const Cell = (props: CellProps) => {
   ) : (
     <td
       className={isEditable ? "row-value" : "row"}
-      contentEditable={isEditable}
-      onInput={onCellInputChange}
+      onClick={() => cellInputOnClick()}
     >
-      {text}
+      {editMode ? (
+        <input
+          ref={inputRef}
+          className="row-input"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onBlur={(e) => commitCellValue(e.target.value)}
+        />
+      ) : (
+        text
+      )}
     </td>
   );
 };

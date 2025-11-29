@@ -13,9 +13,34 @@ export default function DataGrid() {
     ],
   });
 
-  const addColumnClick = () => {};
+  const addColumnClick = () => {
+    setDataGridValues({
+      header: [
+        ...DataGridValues.header,
+        `Head ${DataGridValues.header.length}`,
+      ],
+      body: DataGridValues.body.map((body) => [...body, ""]),
+    });
+  };
 
-  const addRowClick = () => {};
+  const addRowClick = () => {
+    const newRow = new Array(DataGridValues.header.length).fill("");
+    newRow[0] = `Label ${DataGridValues.body.length}`;
+     setDataGridValues({
+      ...DataGridValues,
+      body:[ ...DataGridValues.body,newRow]
+    });
+  };
+
+  const onCellValueCommit = (
+    value: string,
+    rowIndex: number,
+    rowValueIndex: number
+  ) => {
+    const bodyCells = DataGridValues.body;
+    bodyCells[rowIndex][rowValueIndex] = value;
+    setDataGridValues({ ...DataGridValues, body: [...bodyCells] });
+  };
 
   const buildHeaders = () => (
     <tr>
@@ -28,10 +53,17 @@ export default function DataGrid() {
 
   const buildBody = () => (
     <>
-      {DataGridValues.body.map((row) => (
+      {DataGridValues.body.map((row, rowIndex) => (
         <tr className="">
-          {row.map((rowValue, i) => (
-            <Cell type="body" isEditable={!(i == 0)} text={rowValue} />
+          {row.map((rowValue, rowValueIndex) => (
+            <Cell
+              type="body"
+              isEditable={!(rowValueIndex == 0)}
+              text={rowValue}
+              onCellValueChange={(e) =>
+                onCellValueCommit(e, rowIndex, rowValueIndex)
+              }
+            />
           ))}
         </tr>
       ))}

@@ -1,9 +1,22 @@
-.header{
-    background-color: palevioletred;
+.header {
+  background-color: palevioletred;
 }
-.row{
-    background-color: lightgreen;
+.row {
+  background-color: lightgreen;
 }
-.row-value{
+.row-value {
+  padding: 0;
+  cursor: text;
+}
 
+.row-input {
+  width: auto;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
 }
