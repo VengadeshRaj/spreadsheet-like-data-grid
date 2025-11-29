@@ -1,16 +1,18 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import reportWebVitals from './reportWebVitals';
-import DataGrid from './DataGrid';
-import './styles/global.css'
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import reportWebVitals from "./reportWebVitals";
+import DataGrid from "./DataGrid";
+import "./styles/global.css";
+import SpreadsheetSelection from "./Demo";
 
 const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
+  document.getElementById("root") as HTMLElement
 );
 root.render(
   <React.StrictMode>
     <DataGrid />
+    {/* <SpreadsheetSelection /> */}
   </React.StrictMode>
 );
 

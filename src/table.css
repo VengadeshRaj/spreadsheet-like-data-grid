@@ -1,0 +1,20 @@
+.table {
+  border-collapse: collapse;
+  user-select: none; /* avoid text selection while dragging */
+}
+.cell {
+  width: 100px;
+  height: 30px;
+  border: 1px solid #ddd;
+  padding: 4px;
+  box-sizing: border-box;
+  text-align: left;
+}
+.cell.selected {
+  background: rgba(51, 153, 255, 0.25);
+  outline: 2px solid rgba(51, 153, 255, 0.6);
+}
+.cell.anchor {
+  background: rgba(51, 153, 255, 0.35);
+  outline: 2px solid rgba(0, 102, 204, 0.9);
+}

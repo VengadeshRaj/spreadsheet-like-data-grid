@@ -3,11 +3,14 @@ td {
   border: 1.5px solid gray;
   border-collapse: collapse;
   padding: 20px;
-  user-select: text;
+
 }
 
 table {
   border-collapse: collapse;
   padding: 30px;
-  user-select: text;
+}
+
+.header {
+  background-color: palevioletred;
 }

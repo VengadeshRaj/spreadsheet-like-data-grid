@@ -1,54 +1,58 @@
 import React, { useState, useRef, useEffect } from "react";
 import "../styles/cell.css";
 
+export type Coord = { r: number; c: number };
+
 type CellProps = {
-  type: "header" | "body";
   isEditable?: boolean;
   text: string;
+  isSelected?: boolean;
+  isAnchor?: boolean;
+  coord:Coord;
   onCellValueChange?: (cellValue: string) => void;
+  handleMouseDown?: (e: React.MouseEvent, cell: Coord) => void;
+  handleMouseEnter?: (e: React.MouseEvent, cell: Coord) => void;
+  onFocus?: () => void;
+  onClick?: (coord:Coord) => void;
 };
 
 const Cell = (props: CellProps) => {
-  const { type, isEditable = false, text, onCellValueChange } = props;
-  const inputRef: any = useRef(null);
-  const [editMode, setEditMode] = useState(false);
-  const [inputValue, setInputValue] = useState("");
-  
-   useEffect(() => {
-    if (editMode) {
-      inputRef.current?.focus();
-    }
-  }, [editMode]);
-
-  const cellInputOnClick = () => {
-    setInputValue(text);
-    setEditMode(true);
+  const {
+    isEditable = false,
+    isSelected,
+    isAnchor,
+    text,
+    coord,
+    onCellValueChange,
+    handleMouseDown,
+    handleMouseEnter,
+    onClick
+  } = props;
+  const getClassName = () => {
+    if (isEditable) {
+      if (isAnchor) return "row-value anchor";
+      else if (isSelected) return "row-value selected";
+      return "row-value";
+    } else return "row";
   };
+  const className = getClassName();
 
   const commitCellValue = (newCellValue: string) => {
-    setInputValue("");
-    setEditMode(false);
+    console.log(newCellValue)
     onCellValueChange?.(newCellValue);
   };
 
-  return type == "header" ? (
-    <th className={text ? "header" : ""}>{text}</th>
-  ) : (
+  return  (
     <td
-      className={isEditable ? "row-value" : "row"}
-      onClick={() => cellInputOnClick()}
+      className={className}
+      contentEditable={isEditable}
+      onBlur={(e) => commitCellValue(e.target.innerText)}
+      onMouseDown={(e) => handleMouseDown?.(e, coord)}
+      onMouseEnter={(e) => handleMouseEnter?.(e, coord)}
+      tabIndex={0}
+      onClick={()=> onClick?.(coord)}
     >
-      {editMode ? (
-        <input
-          ref={inputRef}
-          className="row-input"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onBlur={(e) => commitCellValue(e.target.value)}
-        />
-      ) : (
-        text
-      )}
+      {text}
     </td>
   );
 };
