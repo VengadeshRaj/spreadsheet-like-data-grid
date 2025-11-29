@@ -8,12 +8,12 @@ type CellProps = {
   text: string;
   isSelected?: boolean;
   isAnchor?: boolean;
-  coord:Coord;
+  coord: Coord;
   onCellValueChange?: (cellValue: string) => void;
   handleMouseDown?: (e: React.MouseEvent, cell: Coord) => void;
   handleMouseEnter?: (e: React.MouseEvent, cell: Coord) => void;
   onFocus?: () => void;
-  onClick?: (coord:Coord) => void;
+  onClick?: (coord: Coord) => void;
 };
 
 const Cell = (props: CellProps) => {
@@ -26,8 +26,9 @@ const Cell = (props: CellProps) => {
     onCellValueChange,
     handleMouseDown,
     handleMouseEnter,
-    onClick
+    onClick,
   } = props;
+
   const getClassName = () => {
     if (isEditable) {
       if (isAnchor) return "row-value anchor";
@@ -35,14 +36,14 @@ const Cell = (props: CellProps) => {
       return "row-value";
     } else return "row";
   };
+
   const className = getClassName();
 
   const commitCellValue = (newCellValue: string) => {
-    console.log(newCellValue)
     onCellValueChange?.(newCellValue);
   };
 
-  return  (
+  return (
     <td
       className={className}
       contentEditable={isEditable}
@@ -50,11 +51,22 @@ const Cell = (props: CellProps) => {
       onMouseDown={(e) => handleMouseDown?.(e, coord)}
       onMouseEnter={(e) => handleMouseEnter?.(e, coord)}
       tabIndex={0}
-      onClick={()=> onClick?.(coord)}
+      onClick={() => onClick?.(coord)}
     >
       {text}
     </td>
   );
 };
 
-export default Cell;
+ const areCellsEqual = (prev: CellProps, next: CellProps) => {
+  return (
+    prev.text === next.text &&
+    prev.isEditable === next.isEditable &&
+    prev.isSelected === next.isSelected &&
+    prev.isAnchor === next.isAnchor &&
+    prev.coord.r === next.coord.r &&
+    prev.coord.c === next.coord.c
+  );
+};
+
+export default React.memo(Cell,areCellsEqual);
