@@ -1,12 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
-import AddButton from "./components/AddButton";
-import Cell from "./components/Cell";
+import React, { useRef, useState } from "react";
+import { Cell, AddButton } from "./components";
 import { DataGridUtility } from "./utils/DataGridUtility";
 import { DATA_GRID_DEFAULT_VALUES } from "./constants";
-import { useMouseUp } from "./hooks/useMouseUp";
-import { useGlobalKeyDown } from "./hooks/useKeyDown";
+import { useMouseUp, useGlobalKeyDown, useClipboard } from "./hooks";
 import { SelRange, DataGridValue, Coord } from "./types";
-import { useClipboard } from "./hooks/useClipboard";
 
 export default function DataGrid() {
   const mouseDownRef = useRef(false);
@@ -56,11 +53,8 @@ export default function DataGrid() {
   };
 
   const pasteTextAt = (text: string, start: Coord) => {
-    // parse TSV (tabs and newline)
-    const rows = text
-      .replace(/\r/g, "")
-      .split("\n")
-      .map((r) => r.split("\t"));
+    const rows = DataGridUtility.parseTSV(text);
+
     const pasteRows = rows.length;
     const pasteCols = rows.reduce(
       (m, r) => DataGridUtility.getMax(m, r.length),
@@ -77,8 +71,8 @@ export default function DataGrid() {
 
     // To be robust, when required grid size exceeds current, expand bodyCopy/headerLen here as well:
     while (body.length < start.r + pasteRows) {
-      const newRow = new Array(header.length).fill("");
-      newRow[0] = `Label ${body.length}`;
+      const newRow = DataGridUtility.createEmptyStrArray(header.length);
+      newRow[0] =DataGridUtility.getTitle('row',body.length);
       body.push(newRow);
     }
 
@@ -96,8 +90,8 @@ export default function DataGrid() {
         const tc = start.c + cc;
         // ensure row exists
         if (!body[tr]) {
-          const newRow = new Array(header.length).fill("");
-          newRow[0] = `Label ${body.length}`;
+          const newRow = DataGridUtility.createEmptyStrArray(header.length);
+          newRow[0] = DataGridUtility.getTitle("row", body.length);
           body.push(newRow);
         }
         body[tr][tc] = rows[rr][cc];
@@ -119,7 +113,7 @@ export default function DataGrid() {
     left: number;
     right: number;
   }) => {
-    const bodyCopy = DataGridValues.body.map((r) => [...r]);
+    const bodyCopy = DataGridUtility.getNewGridBody(DataGridValues.body);
     for (let rr = range.top; rr <= range.bottom; rr++) {
       // make sure row exists
       if (!bodyCopy[rr]) continue;
@@ -154,16 +148,17 @@ export default function DataGrid() {
     setDataGridValues({
       header: [
         ...DataGridValues.header,
-        `Head ${DataGridValues.header.length}`,
+        DataGridUtility.getTitle("column",DataGridValues.header.length)
       ],
       body: DataGridValues.body.map((body) => [...body, ""]),
     });
   };
 
-
   const addRowClick = () => {
-    const newRow = new Array(DataGridValues.header.length).fill("");
-    newRow[0] = `Label ${DataGridValues.body.length}`;
+    const newRow = DataGridUtility.createEmptyStrArray(
+      DataGridValues.header.length
+    );
+    newRow[0] = DataGridUtility.getTitle("row", DataGridValues.body.length);
     setDataGridValues({
       ...DataGridValues,
       body: [...DataGridValues.body, newRow],
@@ -175,7 +170,7 @@ export default function DataGrid() {
     rowIndex: number,
     rowValueIndex: number
   ) => {
-    const bodyCells = DataGridValues.body.map((r) => [...r]);
+    const bodyCells = DataGridUtility.getNewGridBody(DataGridValues.body);
     bodyCells[rowIndex][rowValueIndex] = value;
     setDataGridValues({ ...DataGridValues, body: bodyCells });
   };
@@ -230,7 +225,10 @@ export default function DataGrid() {
               isEditable={!(c == 0)}
               text={rowValue}
               onCellValueChange={(e) => onCellValueCommit(e, r, c)}
-              isSelected={DataGridUtility.isCellSelected(currentSelection,{ r, c })}
+              isSelected={DataGridUtility.isCellSelected(currentSelection, {
+                r,
+                c,
+              })}
               isAnchor={DataGridUtility.isAnchor(anchor, { r, c })}
               handleMouseDown={cellMouseDown}
               handleMouseEnter={cellMouseEnter}
@@ -245,7 +243,6 @@ export default function DataGrid() {
       </tr>
     </>
   );
-
 
   return (
     <div>

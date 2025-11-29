@@ -1,11 +1,29 @@
-import { Coord, DataGridValue, SelRange } from "../types";
+import { Coord, DataGridValue, GridRow, SelRange } from "../types";
 
 export abstract class DataGridUtility {
+  static getTitle(type: "row" | "column", no: number) {
+    return type == "row" ? `Label ${no}` : `Head ${no}`;
+  }
   static getMin(a: number, b: number) {
     return Math.min(a, b);
   }
   static getMax(a: number, b: number) {
     return Math.max(a, b);
+  }
+
+  static parseTSV(text: string) {
+    return text
+      .replace(/\r/g, "")
+      .split("\n")
+      .map((r) => r.split("\t"));
+  }
+
+  static getNewGridBody(gridBody: GridRow[]) {
+    return gridBody.map((r) => [...r]);
+  }
+
+  static createEmptyStrArray(length: number) {
+    return new Array(length).fill("");
   }
 
   static normalizeRange(a: Coord, b: Coord) {
@@ -83,5 +101,4 @@ export abstract class DataGridUtility {
     }
     return DataGridValues;
   };
-
 }
