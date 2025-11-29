@@ -32,14 +32,52 @@ export default function DataGrid() {
   }, []);
 
   useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [focused, anchor]);
+    document.addEventListener("keydown", controlSelection);
+    return () => document.removeEventListener("keydown", controlSelection);
+  }, [focused, anchor, currentSelection, DataGridValues]);
 
-  const handleKeyDown = (ev: KeyboardEvent) => {
-    controlSelection(ev);
-    clipBoardEvent(ev);
-  };
+  useEffect(() => {
+    // Clipboard event handlers using document events:
+    const onCopy = (e: ClipboardEvent) => {
+      if (!currentSelection && !focused) return;
+      e.preventDefault();
+      const sel = currentSelection ?? (focused ? { start: focused, end: focused } : null);
+      if (!sel) return;
+      const norm = normalizeRange(sel.start, sel.end);
+      const tsv = buildTSVFromRange(norm);
+      e.clipboardData?.setData("text/plain", tsv);
+    };
+
+    const onCut = (e: ClipboardEvent) => {
+      if (!currentSelection && !focused) return;
+      e.preventDefault();
+      const sel = currentSelection ?? (focused ? { start: focused, end: focused } : null);
+      if (!sel) return;
+      const norm = normalizeRange(sel.start, sel.end);
+      const tsv = buildTSVFromRange(norm);
+      e.clipboardData?.setData("text/plain", tsv);
+      // Clear selected cells after copying
+      clearRange(norm);
+    };
+
+    const onPaste = (e: ClipboardEvent) => {
+      if (!focused && !anchor) return;
+      e.preventDefault();
+      const text = e.clipboardData?.getData("text/plain") ?? "";
+      if (!text) return;
+      pasteTextAt(text, focused ?? anchor!);
+    };
+
+    document.addEventListener("copy", onCopy);
+    document.addEventListener("cut", onCut);
+    document.addEventListener("paste", onPaste);
+    return () => {
+      document.removeEventListener("copy", onCopy);
+      document.removeEventListener("cut", onCut);
+      document.removeEventListener("paste", onPaste);
+    };
+  }, [currentSelection, focused, DataGridValues]);
+
 
   const controlSelection = (ev: KeyboardEvent) => {
     if (!focused) return;
@@ -56,6 +94,7 @@ export default function DataGrid() {
       newFocus = { r, c: Math.min(COLS - 1, c + 1) };
     // Tab navigation
     else if (ev.key === "Tab") {
+      ev.preventDefault();
       if (ev.shiftKey) {
         // Shift+Tab -> previous cell
         if (c > 0) newFocus = { r, c: c - 1 };
@@ -105,31 +144,6 @@ export default function DataGrid() {
       `td[data-r="${newFocus.r}"][data-c="${newFocus.c}"]`
     ) as HTMLElement | null;
     td?.focus();
-  };
-
-  const clipBoardEvent = (e: KeyboardEvent) => {
-    const ctrl = e.ctrlKey || e.metaKey;
-
-    // handle copy
-    if (ctrl && e.key.toLowerCase() === "c") {
-      e.preventDefault();
-      if(currentSelection)
-      console.log("CTRL + C triggered",normalizeRange(currentSelection.start, currentSelection.end));
-      return;
-    }
-    // handle paste
-    if (ctrl && e.key.toLowerCase() === "v") {
-      e.preventDefault();
-      console.log("CTRL + V triggered");
-      return;
-    }
-
-    // handle cut
-    if (ctrl && e.key.toLowerCase() === "x") {
-      e.preventDefault();
-      console.log("CTRL + X triggered");
-      return;
-    }
   };
 
   const addColumnClick = () => {
@@ -195,9 +209,9 @@ export default function DataGrid() {
     rowIndex: number,
     rowValueIndex: number
   ) => {
-    const bodyCells = DataGridValues.body;
+    const bodyCells = DataGridValues.body.map((r) => [...r]);
     bodyCells[rowIndex][rowValueIndex] = value;
-    setDataGridValues({ ...DataGridValues, body: [...bodyCells] });
+    setDataGridValues({ ...DataGridValues, body: bodyCells });
   };
 
   const cellMouseDown = (e: React.MouseEvent, cell: Coord) => {
@@ -231,7 +245,9 @@ export default function DataGrid() {
   const buildHeaders = () => (
     <tr>
       {DataGridValues.header.map((data, i) => (
-        <th className={i ? "header" : ""}>{data}</th>
+        <th key={`h-${i}`} className={i ? "header" : ""}>
+          {data}
+        </th>
       ))}{" "}
       <AddButton type="Column" onClick={addColumnClick} />
     </tr>
@@ -240,9 +256,10 @@ export default function DataGrid() {
   const buildBody = () => (
     <>
       {DataGridValues.body.map((row, r) => (
-        <tr className="">
+        <tr key={`r-${r}`} className="">
           {row.map((rowValue, c) => (
             <Cell
+              key={`cell-${r}-${c}`}
               coord={{ r, c }}
               isEditable={!(c == 0)}
               text={rowValue}
@@ -256,16 +273,143 @@ export default function DataGrid() {
           ))}
         </tr>
       ))}
+
       <tr>
         <AddButton type="Row" onClick={addRowClick} />
       </tr>
     </>
   );
 
+  // -------------------------
+  // Clipboard helpers
+  // -------------------------
+  const buildTSVFromRange = (range: { top: number; bottom: number; left: number; right: number }) => {
+    const rows: string[] = [];
+    for (let rr = range.top; rr <= range.bottom; rr++) {
+      const cols: string[] = [];
+      for (let cc = range.left; cc <= range.right; cc++) {
+        // If row exists and column exists
+        const val =
+          DataGridValues.body[rr] && DataGridValues.body[rr][cc] !== undefined
+            ? DataGridValues.body[rr][cc]
+            : "";
+        cols.push(val);
+      }
+      rows.push(cols.join("\t"));
+    }
+    return rows.join("\n");
+  };
+
+  const clearRange = (range: { top: number; bottom: number; left: number; right: number }) => {
+    const bodyCopy = DataGridValues.body.map((r) => [...r]);
+    for (let rr = range.top; rr <= range.bottom; rr++) {
+      // make sure row exists
+      if (!bodyCopy[rr]) continue;
+      for (let cc = range.left; cc <= range.right; cc++) {
+        bodyCopy[rr][cc] = "";
+      }
+    }
+    setDataGridValues({ ...DataGridValues, body: bodyCopy });
+  };
+
+  const ensureGridSizeForPaste = (start: Coord, pasteRows: number, pasteCols: number) => {
+    let needUpdate = false;
+    const bodyCopy = DataGridValues.body.map((r) => [...r]);
+    const headerCopy = [...DataGridValues.header];
+
+    // rows
+    const requiredRows = start.r + pasteRows;
+    while (bodyCopy.length < requiredRows) {
+      const newRow = new Array(headerCopy.length).fill("");
+      newRow[0] = `Label ${bodyCopy.length}`;
+      bodyCopy.push(newRow);
+      needUpdate = true;
+    }
+
+    // columns
+    const requiredCols = start.c + pasteCols;
+    if (headerCopy.length < requiredCols) {
+      const addCount = requiredCols - headerCopy.length;
+      for (let i = 0; i < addCount; i++) {
+        headerCopy.push(`Head ${headerCopy.length}`);
+      }
+      // expand existing rows
+      for (let r = 0; r < bodyCopy.length; r++) {
+        for (let k = 0; k < addCount; k++) {
+          bodyCopy[r].push("");
+        }
+      }
+      needUpdate = true;
+    }
+
+    if (needUpdate) {
+      setDataGridValues({ header: headerCopy, body: bodyCopy });
+    }
+  };
+
+  const pasteTextAt = (text: string, start: Coord) => {
+    // parse TSV (tabs and newline)
+    const rows = text.replace(/\r/g, "").split("\n").map((r) => r.split("\t"));
+    const pasteRows = rows.length;
+    const pasteCols = rows.reduce((m, r) => Math.max(m, r.length), 0);
+
+    // ensure grid size
+    ensureGridSizeForPaste(start, pasteRows, pasteCols);
+
+    // after ensure, take a fresh copy of grid (because setState may be async)
+    const bodyCopy = DataGridValues.body.map((r) => [...r]);
+    const headerLen = DataGridValues.header.length;
+
+    // If ensureGridSizeForPaste added rows/cols via setState, DataGridValues might be stale.
+    // To be robust, when required grid size exceeds current, expand bodyCopy/headerLen here as well:
+    while (bodyCopy.length < start.r + pasteRows) {
+      const newRow = new Array(headerLen).fill("");
+      newRow[0] = `Label ${bodyCopy.length}`;
+      bodyCopy.push(newRow);
+    }
+    if (bodyCopy[0] && bodyCopy[0].length < start.c + pasteCols) {
+      const addCols = start.c + pasteCols - bodyCopy[0].length;
+      for (let r = 0; r < bodyCopy.length; r++) {
+        for (let k = 0; k < addCols; k++) bodyCopy[r].push("");
+      }
+    }
+
+    // write paste data
+    for (let rr = 0; rr < rows.length; rr++) {
+      for (let cc = 0; cc < rows[rr].length; cc++) {
+        const tr = start.r + rr;
+        const tc = start.c + cc;
+        // ensure row exists
+        if (!bodyCopy[tr]) {
+          const newRow = new Array(DataGridValues.header.length).fill("");
+          newRow[0] = `Label ${bodyCopy.length}`;
+          bodyCopy.push(newRow);
+        }
+        bodyCopy[tr][tc] = rows[rr][cc];
+      }
+    }
+
+    setDataGridValues({ ...DataGridValues, body: bodyCopy });
+
+    // update focus and selection to pasted range's end
+    const endCoord = { r: start.r + pasteRows - 1, c: start.c + pasteCols - 1 };
+    setFocused(endCoord);
+    setAnchor(endCoord);
+    setSelectionBetween(start, endCoord);
+
+    // focus the td element for visual focus (if present)
+    setTimeout(() => {
+      const td = tableRef.current?.querySelector(
+        `td[data-r="${endCoord.r}"][data-c="${endCoord.c}"]`
+      ) as HTMLElement | null;
+      td?.focus();
+    }, 0);
+  };
+
   return (
     <div>
-      <table className="">
-        <thead ref={tableRef}>{buildHeaders()}</thead>
+      <table className="" ref={tableRef}>
+        <thead>{buildHeaders()}</thead>
         <tbody>{buildBody()}</tbody>
       </table>
     </div>
