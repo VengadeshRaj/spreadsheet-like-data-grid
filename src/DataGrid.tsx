@@ -312,7 +312,7 @@ export default function DataGrid() {
     setDataGridValues({ ...DataGridValues, body: bodyCopy });
   };
 
-  const ensureGridSizeForPaste = (start: Coord, pasteRows: number, pasteCols: number) => {
+  const getNewGridSizeForPaste = (start: Coord, pasteRows: number, pasteCols: number) => {
     let needUpdate = false;
     const bodyCopy = DataGridValues.body.map((r) => [...r]);
     const headerCopy = [...DataGridValues.header];
@@ -329,6 +329,7 @@ export default function DataGrid() {
     // columns
     const requiredCols = start.c + pasteCols;
     if (headerCopy.length < requiredCols) {
+      debugger
       const addCount = requiredCols - headerCopy.length;
       for (let i = 0; i < addCount; i++) {
         headerCopy.push(`Head ${headerCopy.length}`);
@@ -343,8 +344,9 @@ export default function DataGrid() {
     }
 
     if (needUpdate) {
-      setDataGridValues({ header: headerCopy, body: bodyCopy });
+      return ({ header: headerCopy, body: bodyCopy })
     }
+    return DataGridValues;
   };
 
   const pasteTextAt = (text: string, start: Coord) => {
@@ -353,24 +355,20 @@ export default function DataGrid() {
     const pasteRows = rows.length;
     const pasteCols = rows.reduce((m, r) => Math.max(m, r.length), 0);
 
-    // ensure grid size
-    ensureGridSizeForPaste(start, pasteRows, pasteCols);
+    // get update grid size
+    const {header,body} = getNewGridSizeForPaste(start, pasteRows, pasteCols);
 
-    // after ensure, take a fresh copy of grid (because setState may be async)
-    const bodyCopy = DataGridValues.body.map((r) => [...r]);
-    const headerLen = DataGridValues.header.length;
-
-    // If ensureGridSizeForPaste added rows/cols via setState, DataGridValues might be stale.
     // To be robust, when required grid size exceeds current, expand bodyCopy/headerLen here as well:
-    while (bodyCopy.length < start.r + pasteRows) {
-      const newRow = new Array(headerLen).fill("");
-      newRow[0] = `Label ${bodyCopy.length}`;
-      bodyCopy.push(newRow);
+    while (body.length < start.r + pasteRows) {
+      const newRow = new Array( header.length).fill("");
+      newRow[0] = `Label ${body.length}`;
+      body.push(newRow);
     }
-    if (bodyCopy[0] && bodyCopy[0].length < start.c + pasteCols) {
-      const addCols = start.c + pasteCols - bodyCopy[0].length;
-      for (let r = 0; r < bodyCopy.length; r++) {
-        for (let k = 0; k < addCols; k++) bodyCopy[r].push("");
+
+    if (body[0] && body[0].length < start.c + pasteCols) {
+      const addCols = start.c + pasteCols - body[0].length;
+      for (let r = 0; r < body.length; r++) {
+        for (let k = 0; k < addCols; k++) body[r].push("");
       }
     }
 
@@ -380,16 +378,16 @@ export default function DataGrid() {
         const tr = start.r + rr;
         const tc = start.c + cc;
         // ensure row exists
-        if (!bodyCopy[tr]) {
-          const newRow = new Array(DataGridValues.header.length).fill("");
-          newRow[0] = `Label ${bodyCopy.length}`;
-          bodyCopy.push(newRow);
+        if (!body[tr]) {
+          const newRow = new Array(header.length).fill("");
+          newRow[0] = `Label ${body.length}`;
+          body.push(newRow);
         }
-        bodyCopy[tr][tc] = rows[rr][cc];
+        body[tr][tc] = rows[rr][cc];
       }
     }
 
-    setDataGridValues({ ...DataGridValues, body: bodyCopy });
+    setDataGridValues({ header, body });
 
     // update focus and selection to pasted range's end
     const endCoord = { r: start.r + pasteRows - 1, c: start.c + pasteCols - 1 };
@@ -397,13 +395,6 @@ export default function DataGrid() {
     setAnchor(endCoord);
     setSelectionBetween(start, endCoord);
 
-    // focus the td element for visual focus (if present)
-    setTimeout(() => {
-      const td = tableRef.current?.querySelector(
-        `td[data-r="${endCoord.r}"][data-c="${endCoord.c}"]`
-      ) as HTMLElement | null;
-      td?.focus();
-    }, 0);
   };
 
   return (
