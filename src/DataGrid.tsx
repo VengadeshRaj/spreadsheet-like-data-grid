@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { Cell, AddButton } from "./components";
 import { DataGridUtility } from "./utils/DataGridUtility";
 import { DATA_GRID_DEFAULT_VALUES } from "./constants";
@@ -6,51 +6,57 @@ import { useMouseUp, useGlobalKeyDown, useClipboard } from "./hooks";
 import { SelRange, DataGridValue, Coord } from "./types";
 
 export default function DataGrid() {
+  // To hold mouse state
   const mouseDownRef = useRef(false);
+  // To hold master table ref
   const tableRef: any = useRef(null);
 
+  // To store first selected cell place
   const [anchor, setAnchor] = useState<Coord | null>(null);
+  // To store selected cells range
   const [currentSelection, setCurrentSelection] = useState<SelRange>(null);
+  // To store focused cell place
   const [focused, setFocused] = useState<Coord | null>(null);
 
+  // To store overall spreed sheet datas
   const [DataGridValues, setDataGridValues] = useState<DataGridValue>(
     DATA_GRID_DEFAULT_VALUES
   );
 
+  // To find new focus
   const ROWS = DataGridValues.body.length;
   const COLS =
     DataGridValues.header?.length ??
     (DataGridValues.body[0] ? DataGridValues.body[0].length : 0);
 
+  // Initiating hook to listen mouse release
   useMouseUp(() => {
     mouseDownRef.current = false;
   });
 
+  // Function to store selection coordinate
   const setSelectionBetween = (a: Coord, b: Coord) => {
     setCurrentSelection({ start: a, end: b });
   };
 
-  const buildTSVFromRange = (range: {
-    top: number;
-    bottom: number;
-    left: number;
-    right: number;
-  }) => {
-    const rows: string[] = [];
-    for (let rr = range.top; rr <= range.bottom; rr++) {
-      const cols: string[] = [];
-      for (let cc = range.left; cc <= range.right; cc++) {
-        // If row exists and column exists
-        const val =
-          DataGridValues.body[rr] && DataGridValues.body[rr][cc] !== undefined
-            ? DataGridValues.body[rr][cc]
-            : "";
-        cols.push(val);
+  const buildTSVFromRange = useCallback(
+    (range: { top: number; bottom: number; left: number; right: number }) => {
+      const rows: string[] = [];
+      for (let rr = range.top; rr <= range.bottom; rr++) {
+        const cols: string[] = [];
+        for (let cc = range.left; cc <= range.right; cc++) {
+          const val =
+            DataGridValues.body[rr] && DataGridValues.body[rr][cc] !== undefined
+              ? DataGridValues.body[rr][cc]
+              : "";
+          cols.push(val);
+        }
+        rows.push(cols.join("\t"));
       }
-      rows.push(cols.join("\t"));
-    }
-    return rows.join("\n");
-  };
+      return rows.join("\n");
+    },
+    [DataGridValues]
+  );
 
   const pasteTextAt = (text: string, start: Coord) => {
     const rows = DataGridUtility.parseTSV(text);
@@ -72,7 +78,7 @@ export default function DataGrid() {
     // To be robust, when required grid size exceeds current, expand bodyCopy/headerLen here as well:
     while (body.length < start.r + pasteRows) {
       const newRow = DataGridUtility.createEmptyStrArray(header.length);
-      newRow[0] =DataGridUtility.getTitle('row',body.length);
+      newRow[0] = DataGridUtility.getTitle("row", body.length);
       body.push(newRow);
     }
 
@@ -107,22 +113,19 @@ export default function DataGrid() {
     setSelectionBetween(start, endCoord);
   };
 
-  const clearRange = (range: {
-    top: number;
-    bottom: number;
-    left: number;
-    right: number;
-  }) => {
-    const bodyCopy = DataGridUtility.getNewGridBody(DataGridValues.body);
-    for (let rr = range.top; rr <= range.bottom; rr++) {
-      // make sure row exists
-      if (!bodyCopy[rr]) continue;
-      for (let cc = range.left; cc <= range.right; cc++) {
-        bodyCopy[rr][cc] = "";
+  const clearRange = useCallback(
+    (range: { top: number; bottom: number; left: number; right: number }) => {
+      const bodyCopy = DataGridUtility.getNewGridBody(DataGridValues.body);
+      for (let rr = range.top; rr <= range.bottom; rr++) {
+        if (!bodyCopy[rr]) continue;
+        for (let cc = range.left; cc <= range.right; cc++) {
+          bodyCopy[rr][cc] = "";
+        }
       }
-    }
-    setDataGridValues({ ...DataGridValues, body: bodyCopy });
-  };
+      setDataGridValues((prev) => ({ ...prev, body: bodyCopy }));
+    },
+    []
+  );
 
   useClipboard({
     currentSelection,
@@ -144,16 +147,18 @@ export default function DataGrid() {
     tableRef,
   });
 
+  // To create column row
   const addColumnClick = () => {
     setDataGridValues({
       header: [
         ...DataGridValues.header,
-        DataGridUtility.getTitle("column",DataGridValues.header.length)
+        DataGridUtility.getTitle("column", DataGridValues.header.length),
       ],
       body: DataGridValues.body.map((body) => [...body, ""]),
     });
   };
 
+  // To create new row
   const addRowClick = () => {
     const newRow = DataGridUtility.createEmptyStrArray(
       DataGridValues.header.length
@@ -193,11 +198,11 @@ export default function DataGrid() {
       setFocused(cell);
     }
 
-    // keep current behaviour: prevent text selection while dragging
+    // keep current behaviour, prevent text selection while dragging
     mouseDownRef.current = true;
   };
 
-  const cellMouseEnter = (e: React.MouseEvent, cell: Coord) => {
+  const cellMouseEnter = (cell: Coord) => {
     if (!mouseDownRef.current) return;
     if (!anchor) return;
     setSelectionBetween(anchor, cell);

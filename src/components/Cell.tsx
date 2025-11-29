@@ -2,7 +2,6 @@ import React from "react";
 import "../styles/cell.css";
 import { Coord } from "../types";
 
-
 type CellProps = {
   isEditable?: boolean;
   text: string;
@@ -11,7 +10,7 @@ type CellProps = {
   coord: Coord;
   onCellValueChange?: (cellValue: string) => void;
   handleMouseDown?: (e: React.MouseEvent, cell: Coord) => void;
-  handleMouseEnter?: (e: React.MouseEvent, cell: Coord) => void;
+  handleMouseEnter?: (cell: Coord) => void;
   onFocus?: () => void;
   onClick?: (coord: Coord) => void;
 };
@@ -30,11 +29,12 @@ const Cell = (props: CellProps) => {
   } = props;
 
   const getClassName = () => {
-    if (isEditable) {
-      if (isAnchor) return "row-value anchor";
-      else if (isSelected) return "row-value selected";
-      return "row-value";
-    } else return "row";
+    if (!isEditable) return "row";
+
+    if (isAnchor) return "row-value anchor";
+    if (isSelected) return "row-value selected";
+
+    return "row-value";
   };
 
   const className = getClassName();
@@ -49,7 +49,7 @@ const Cell = (props: CellProps) => {
       contentEditable={isEditable}
       onBlur={(e) => commitCellValue(e.target.innerText)}
       onMouseDown={(e) => handleMouseDown?.(e, coord)}
-      onMouseEnter={(e) => handleMouseEnter?.(e, coord)}
+      onMouseEnter={(e) => handleMouseEnter?.(coord)}
       tabIndex={0}
       onClick={() => onClick?.(coord)}
     >
@@ -58,7 +58,7 @@ const Cell = (props: CellProps) => {
   );
 };
 
- const areCellsEqual = (prev: CellProps, next: CellProps) => {
+const areCellsEqual = (prev: CellProps, next: CellProps) => {
   return (
     prev.text === next.text &&
     prev.isEditable === next.isEditable &&
@@ -69,4 +69,4 @@ const Cell = (props: CellProps) => {
   );
 };
 
-export default React.memo(Cell,areCellsEqual);
+export default React.memo(Cell, areCellsEqual);

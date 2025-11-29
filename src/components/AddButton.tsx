@@ -6,7 +6,7 @@ type AddButtonProps = {
   onClick: () => void;
 };
 
-const AddButton = (props: AddButtonProps) => {
+const AddButton = React.memo((props: AddButtonProps) => {
   const { type, onClick } = props;
   const [showBtnText, setShowBtnText] = useState(false);
 
@@ -20,6 +20,6 @@ const AddButton = (props: AddButtonProps) => {
       {showBtnText ? `Add ${type}` : "+"}
     </button>
   );
-};
+});
 
 export default AddButton;
