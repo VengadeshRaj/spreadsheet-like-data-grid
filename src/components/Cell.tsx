@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 import "../styles/cell.css";
+import { Coord } from "../types";
 
-export type Coord = { r: number; c: number };
 
 type CellProps = {
   isEditable?: boolean;
