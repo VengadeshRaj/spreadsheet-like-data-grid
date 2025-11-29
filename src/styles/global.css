@@ -1,16 +1,19 @@
 th,
 td {
-  border: 1.5px solid gray;
+  border: 2px solid gray;
   border-collapse: collapse;
   padding: 20px;
-
 }
 
 table {
   border-collapse: collapse;
   padding: 30px;
+  border-radius: 12px;
 }
 
 .header {
-  background-color: palevioletred;
+  background: lightpink;
+  color: #f44336;
+  cursor: not-allowed;
+  /* font-family: "Courier New", monospace; */
 }

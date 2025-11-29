@@ -58,15 +58,4 @@ const Cell = (props: CellProps) => {
   );
 };
 
-const areCellsEqual = (prev: CellProps, next: CellProps) => {
-  return (
-    prev.text === next.text &&
-    prev.isEditable === next.isEditable &&
-    prev.isSelected === next.isSelected &&
-    prev.isAnchor === next.isAnchor &&
-    prev.coord.r === next.coord.r &&
-    prev.coord.c === next.coord.c
-  );
-};
-
-export default React.memo(Cell, areCellsEqual);
+export default React.memo(Cell);

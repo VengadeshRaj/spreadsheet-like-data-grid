@@ -1,10 +1,13 @@
-
 .row {
-  background-color: lightgreen;
+  background-color: #c2fbd7;
+  color: green;
 }
 .row-value {
   padding: 0;
   cursor: text;
+}
+.row-value:hover {
+  background-color: #f5f5fa;
 }
 .row-value.selected {
   background: rgba(51, 153, 255, 0.25);

@@ -29,7 +29,6 @@ export function useGlobalKeyDown(params: {
       else if (ev.key === "ArrowRight") newFocus = { r, c: DataGridUtility.getMin(COLS - 1, c + 1) };
       // Tab navigation
       else if (ev.key === "Tab") {
-        ev.preventDefault();
         if (ev.shiftKey) {
           if (c > 0) newFocus = { r, c: c - 1 };
           else if (r > 0) newFocus = { r: r - 1, c: COLS - 1 };
