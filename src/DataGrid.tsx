@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Cell, AddButton } from "./components";
 import { DataGridUtility } from "./utils/DataGridUtility";
 import { DATA_GRID_DEFAULT_VALUES } from "./constants";
@@ -8,7 +8,6 @@ import { SelRange, DataGridValue, Coord } from "./types";
 export default function DataGrid() {
   // To hold mouse state
   const mouseDownRef = useRef(false);
-
   // To store first selected cell place
   const [anchor, setAnchor] = useState<Coord | null>(null);
   // To store selected cells range
@@ -17,9 +16,28 @@ export default function DataGrid() {
   const [focused, setFocused] = useState<Coord | null>(null);
 
   // To store overall spreed sheet datas
-  const [DataGridValues, setDataGridValues] = useState<DataGridValue>(
-    DATA_GRID_DEFAULT_VALUES
+  const [DataGridValues, setDataGridValues] = useState<DataGridValue>({
+    header: [],
+    body: [],
+  });
+
+useEffect(() => {
+  const header = Array.from(
+    { length: DATA_GRID_DEFAULT_VALUES.COLUMNS },
+    (_, i) => (i === 0 ? "📝" : `H${i}`)
   );
+
+  const body = Array.from(
+    { length: DATA_GRID_DEFAULT_VALUES.ROWS },
+    (_, rowIndex) =>
+      Array.from(
+        { length: DATA_GRID_DEFAULT_VALUES.COLUMNS },
+        (_, colIndex) => (colIndex === 0 ? `C${rowIndex + 1}` : "")
+      )
+  );
+
+  setDataGridValues({ header, body });
+}, []);
 
   // To find new focus
   const ROWS = DataGridValues.body.length;
@@ -209,14 +227,21 @@ export default function DataGrid() {
   const buildHeaders = () => (
     <tr className="h-[1rem]">
       {DataGridValues.header.map((data, i) => (
-        <th key={`h-${i}`} className={i ? "bg-blue-500 text-white px-4 cursor-not-allowed" : "cursor-not-allowed"}>
+        <th
+          key={`h-${i}`}
+          className={
+            i
+              ? "bg-blue-500 text-white px-4 cursor-not-allowed"
+              : "cursor-not-allowed"
+          }
+        >
           {data}
         </th>
       ))}{" "}
     </tr>
   );
 
-  const buildBody = () => ( 
+  const buildBody = () => (
     <>
       {DataGridValues.body.map((row, r) => (
         <tr key={`r-${r}`} className="">

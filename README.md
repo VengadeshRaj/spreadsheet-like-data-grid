@@ -2,7 +2,7 @@
 
 A spreadsheet-like DataGrid build using React (no third-party libraries) that supports editing, adding rows/columns, mouse drag selection, copy & paste of rectangular ranges, and automatically extends the grid if the pasted area would overflow
 
-![spreadsheet-like-data-grid-updated](./images/spreed-sheet-like-data-grid-updated.png)
+![spreadsheet-like-data-grid](./images/spreed-sheet-like-data-grid.png)
 
 ## 🚀 Features:
 - Add new columns and row using Add Column/Add Button.
