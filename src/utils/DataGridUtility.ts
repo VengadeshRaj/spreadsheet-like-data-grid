@@ -2,7 +2,7 @@ import { Coord, DataGridValue, GridRow, SelRange } from "../types";
 
 export abstract class DataGridUtility {
   static getTitle(type: "row" | "column", no: number) {
-    return type == "row" ? `Label ${no}` : `Head ${no}`;
+    return type == "row" ? `R${no}` : `C${no}`;
   }
   static getMin(a: number, b: number) {
     return Math.min(a, b);
@@ -74,7 +74,7 @@ export abstract class DataGridUtility {
     const requiredRows = start.r + pasteRows;
     while (bodyCopy.length < requiredRows) {
       const newRow = new Array(headerCopy.length).fill("");
-      newRow[0] = `Label ${bodyCopy.length}`;
+      newRow[0] = `R${bodyCopy.length}`;
       bodyCopy.push(newRow);
       needUpdate = true;
     }
@@ -85,7 +85,7 @@ export abstract class DataGridUtility {
       debugger;
       const addCount = requiredCols - headerCopy.length;
       for (let i = 0; i < addCount; i++) {
-        headerCopy.push(`Head ${headerCopy.length}`);
+        headerCopy.push(`C${headerCopy.length}`);
       }
       // expand existing rows
       for (let r = 0; r < bodyCopy.length; r++) {

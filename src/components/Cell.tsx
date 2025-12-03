@@ -29,12 +29,15 @@ const Cell = (props: CellProps) => {
   } = props;
 
   const getClassName = () => {
-    if (!isEditable) return "row";
+    let cellCss = "text-center px-2 ";
+    if (!isEditable) { return cellCss +"cursor-not-allowed bg-green-100 text-green-500";}
 
-    if (isAnchor) return "row-value anchor";
-    if (isSelected) return "row-value selected";
+    if (isAnchor)
+      { return  cellCss + "cursor-text bg-blue-200 outline-2 outline-dashed outline-blue-700";} 
+    if (isSelected)
+      { return cellCss +"cursor-text bg-blue-200 outline outline-blue-700";} 
 
-    return "row-value";
+    return cellCss+ "cursor-text hover:bg-gray-100";
   };
 
   const className = getClassName();
@@ -52,6 +55,7 @@ const Cell = (props: CellProps) => {
       onMouseEnter={(e) => handleMouseEnter?.(coord)}
       tabIndex={0}
       onClick={() => onClick?.(coord)}
+      
     >
       {text}
     </td>

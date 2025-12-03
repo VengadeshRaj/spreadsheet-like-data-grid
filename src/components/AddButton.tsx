@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "../styles/add-button.css";
 
 type AddButtonProps = {
   type: "Row" | "Column";
@@ -8,16 +7,13 @@ type AddButtonProps = {
 
 const AddButton = React.memo((props: AddButtonProps) => {
   const { type, onClick } = props;
-  const [showBtnText, setShowBtnText] = useState(false);
 
   return (
     <button
       onClick={onClick}
-      onMouseOver={() => setShowBtnText(true)}
-      onMouseLeave={() => setShowBtnText(false)}
-      className="btn"
+      className="bg-blue-700 text-white border px-2 rounded m-1 h-[2rem] w-[2rem]"
     >
-      {showBtnText ? `Add ${type}` : "+"}
+      { "+"}
     </button>
   );
 });

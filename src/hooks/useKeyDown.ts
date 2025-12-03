@@ -10,9 +10,8 @@ export function useGlobalKeyDown(params: {
   setSelectionBetween: (a: Coord, b: Coord) => void;
   ROWS: number;
   COLS: number;
-  tableRef: React.RefObject<HTMLElement | null>;
 }) {
-  const { focused, anchor, setFocused, setAnchor, setSelectionBetween, ROWS, COLS, tableRef } = params;
+  const { focused, anchor, setFocused, setAnchor, setSelectionBetween, ROWS, COLS } = params;
 
   useEffect(() => {
     const controlSelection = (ev: KeyboardEvent) => {
@@ -40,11 +39,6 @@ export function useGlobalKeyDown(params: {
         setFocused(newFocus);
         setAnchor(newFocus);
         setSelectionBetween(newFocus, newFocus);
-
-        const td = tableRef.current?.querySelector(
-          `td[data-r="${newFocus.r}"][data-c="${newFocus.c}"]`
-        ) as HTMLElement | null;
-        td?.focus();
         return;
       } else {
         return;
@@ -66,11 +60,6 @@ export function useGlobalKeyDown(params: {
         setAnchor(newFocus);
         setSelectionBetween(newFocus, newFocus);
       }
-
-      const td = tableRef.current?.querySelector(
-        `td[data-r="${newFocus.r}"][data-c="${newFocus.c}"]`
-      ) as HTMLElement | null;
-      td?.focus();
     };
 
     const listener = (e: KeyboardEvent) => controlSelection(e);

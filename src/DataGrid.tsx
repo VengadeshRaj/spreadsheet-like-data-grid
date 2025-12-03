@@ -8,8 +8,6 @@ import { SelRange, DataGridValue, Coord } from "./types";
 export default function DataGrid() {
   // To hold mouse state
   const mouseDownRef = useRef(false);
-  // To hold master table ref
-  const tableRef: any = useRef(null);
 
   // To store first selected cell place
   const [anchor, setAnchor] = useState<Coord | null>(null);
@@ -144,7 +142,6 @@ export default function DataGrid() {
     setSelectionBetween,
     ROWS,
     COLS,
-    tableRef,
   });
 
   // To create column row
@@ -160,10 +157,11 @@ export default function DataGrid() {
 
   // To create new row
   const addRowClick = () => {
+    debugger;
     const newRow = DataGridUtility.createEmptyStrArray(
       DataGridValues.header.length
     );
-    newRow[0] = DataGridUtility.getTitle("row", DataGridValues.body.length);
+    newRow[0] = DataGridUtility.getTitle("row", DataGridValues.body.length + 1);
     setDataGridValues({
       ...DataGridValues,
       body: [...DataGridValues.body, newRow],
@@ -209,17 +207,16 @@ export default function DataGrid() {
   };
 
   const buildHeaders = () => (
-    <tr>
+    <tr className="h-[1rem]">
       {DataGridValues.header.map((data, i) => (
-        <th key={`h-${i}`} className={i ? "header" : ""}>
+        <th key={`h-${i}`} className={i ? "bg-blue-500 text-white px-4 cursor-not-allowed" : "cursor-not-allowed"}>
           {data}
         </th>
       ))}{" "}
-      <AddButton type="Column" onClick={addColumnClick} />
     </tr>
   );
 
-  const buildBody = () => (
+  const buildBody = () => ( 
     <>
       {DataGridValues.body.map((row, r) => (
         <tr key={`r-${r}`} className="">
@@ -242,19 +239,19 @@ export default function DataGrid() {
           ))}
         </tr>
       ))}
-
-      <tr>
-        <AddButton type="Row" onClick={addRowClick} />
-      </tr>
     </>
   );
 
   return (
-    <div>
-      <table className="" ref={tableRef}>
-        <thead>{buildHeaders()}</thead>
-        <tbody>{buildBody()}</tbody>
-      </table>
+    <div className="flex flex-col">
+      <div className="flex flex-row">
+        <table className="">
+          <thead>{buildHeaders()}</thead>
+          <tbody>{buildBody()}</tbody>
+        </table>
+        <AddButton type="Column" onClick={addColumnClick} />
+      </div>
+      <AddButton type="Row" onClick={addRowClick} />
     </div>
   );
 }
