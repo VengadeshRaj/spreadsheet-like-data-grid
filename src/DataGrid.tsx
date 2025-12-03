@@ -24,7 +24,7 @@ export default function DataGrid() {
 useEffect(() => {
   const header = Array.from(
     { length: DATA_GRID_DEFAULT_VALUES.COLUMNS },
-    (_, i) => (i === 0 ? "📝" : `H${i}`)
+    (_, i) => (i === 0 ? "📝" : `C${i}`)
   );
 
   const body = Array.from(
@@ -32,7 +32,7 @@ useEffect(() => {
     (_, rowIndex) =>
       Array.from(
         { length: DATA_GRID_DEFAULT_VALUES.COLUMNS },
-        (_, colIndex) => (colIndex === 0 ? `C${rowIndex + 1}` : "")
+        (_, colIndex) => (colIndex === 0 ? `R${rowIndex + 1}` : "")
       )
   );
 
@@ -164,6 +164,7 @@ useEffect(() => {
 
   // To create column row
   const addColumnClick = () => {
+    debugger
     setDataGridValues({
       header: [
         ...DataGridValues.header,
@@ -175,7 +176,6 @@ useEffect(() => {
 
   // To create new row
   const addRowClick = () => {
-    debugger;
     const newRow = DataGridUtility.createEmptyStrArray(
       DataGridValues.header.length
     );
