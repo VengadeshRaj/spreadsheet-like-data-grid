@@ -14,7 +14,6 @@ export default function DataGrid() {
   const [currentSelection, setCurrentSelection] = useState<SelRange>(null);
   // To store focused cell place
   const [focused, setFocused] = useState<Coord | null>(null);
-
   // To store overall spreed sheet datas
   const [DataGridValues, setDataGridValues] = useState<DataGridValue>({
     header: [],
@@ -164,7 +163,6 @@ useEffect(() => {
 
   // To create column row
   const addColumnClick = () => {
-    debugger
     setDataGridValues({
       header: [
         ...DataGridValues.header,

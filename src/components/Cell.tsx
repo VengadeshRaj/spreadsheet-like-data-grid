@@ -35,7 +35,7 @@ const Cell = (props: CellProps) => {
     if (isAnchor)
       { return  cellCss + "cursor-text bg-blue-200 outline-2 outline-dashed outline-blue-700";} 
     if (isSelected)
-      { return cellCss +"cursor-text bg-blue-200 outline outline-blue-700";} 
+      { return cellCss +"cursor-text bg-blue-100 outline outline-blue-500";} 
 
     return cellCss+ "cursor-text hover:bg-gray-100";
   };
@@ -55,7 +55,6 @@ const Cell = (props: CellProps) => {
       onMouseEnter={(e) => handleMouseEnter?.(coord)}
       tabIndex={0}
       onClick={() => onClick?.(coord)}
-      
     >
       {text}
     </td>
