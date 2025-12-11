@@ -20,23 +20,23 @@ export default function DataGrid() {
     body: [],
   });
 
-useEffect(() => {
-  const header = Array.from(
-    { length: DATA_GRID_DEFAULT_VALUES.COLUMNS },
-    (_, i) => (i === 0 ? "📝" : `C${i}`)
-  );
+  useEffect(() => {
+    const header = Array.from(
+      { length: DATA_GRID_DEFAULT_VALUES.COLUMNS },
+      (_, i) => (i === 0 ? "📝" : `C${i}`)
+    );
 
-  const body = Array.from(
-    { length: DATA_GRID_DEFAULT_VALUES.ROWS },
-    (_, rowIndex) =>
-      Array.from(
-        { length: DATA_GRID_DEFAULT_VALUES.COLUMNS },
-        (_, colIndex) => (colIndex === 0 ? `R${rowIndex + 1}` : "")
-      )
-  );
+    const body = Array.from(
+      { length: DATA_GRID_DEFAULT_VALUES.ROWS },
+      (_, rowIndex) =>
+        Array.from(
+          { length: DATA_GRID_DEFAULT_VALUES.COLUMNS },
+          (_, colIndex) => (colIndex === 0 ? `R${rowIndex + 1}` : "")
+        )
+    );
 
-  setDataGridValues({ header, body });
-}, []);
+    setDataGridValues({ header, body });
+  }, []);
 
   // To find new focus
   const ROWS = DataGridValues.body.length;
@@ -222,22 +222,38 @@ useEffect(() => {
     setSelectionBetween(anchor, cell);
   };
 
+  const headerCellOnClick = (index: number) => {
+    setSelectionBetween(
+      { c: index, r: 0 },
+      { c: index, r: DataGridValues.body.length }
+    );
+  };
+
   const buildHeaders = () => (
     <tr className="h-[1rem]">
       {DataGridValues.header.map((data, i) => (
         <th
           key={`h-${i}`}
           className={
-            i
-              ? "bg-blue-500 text-white px-4 cursor-not-allowed"
-              : "cursor-not-allowed"
+            i ? "bg-blue-500 text-white px-4 cursor-cell" : "cursor-not-allowed"
           }
+          onClick={() => headerCellOnClick(i)}
         >
           {data}
         </th>
       ))}{" "}
     </tr>
   );
+
+  const cellOnClick = (coord: Coord) => {
+    const isRowClick = coord.c === 0;
+    if (isRowClick) {
+      setSelectionBetween(coord, {
+        c: DataGridValues.header.length,
+        r: coord.r,
+      });
+    } else setFocused(coord);
+  };
 
   const buildBody = () => (
     <>
@@ -257,7 +273,7 @@ useEffect(() => {
               isAnchor={DataGridUtility.isAnchor(anchor, { r, c })}
               handleMouseDown={cellMouseDown}
               handleMouseEnter={cellMouseEnter}
-              onClick={(coord) => setFocused(coord)}
+              onClick={(coord) => cellOnClick(coord)}
             />
           ))}
         </tr>

@@ -1,4 +1,4 @@
 export const DATA_GRID_DEFAULT_VALUES = {
-  COLUMNS: 50,
+  COLUMNS: 51,
   ROWS: 50,
 };

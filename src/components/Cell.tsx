@@ -30,7 +30,7 @@ const Cell = (props: CellProps) => {
 
   const getClassName = () => {
     let cellCss = "text-center px-2 ";
-    if (!isEditable) { return cellCss +"cursor-not-allowed bg-green-100 text-green-500";}
+    if (!isEditable) { return cellCss +"cursor-cell bg-green-100 text-green-500";}
 
     if (isAnchor)
       { return  cellCss + "cursor-text bg-blue-200 outline-2 outline-dashed outline-blue-700";} 
